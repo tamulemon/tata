@@ -1,0 +1,33 @@
+{
+    "data": {
+        "folder": "data"
+    },
+    "rsi": {
+        "timeperiod": 14
+    },
+    "cmf": {
+        "timeperiod": 20
+    },
+    "macd": {
+        "slowperiod": 26,
+        "fastperiod": 12,
+        "signalperiod": 9
+    },
+    "indicator": {
+        "relative_strength": {
+            "max_rsi": 30
+        },
+        "money_flow": {
+            "min_cmf": 0.05
+        },
+        "bullish_crossover": {
+            "max_macd": -0.25,
+            "window": 3
+        }
+    },
+    "pattern": {
+        "default": {
+            "window": 2
+        }
+    }
+}

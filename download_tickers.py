@@ -12,7 +12,7 @@ if not os.path.isdir(data_folder):
 
 def download_ticker_data(ticker):
     fullpath = data_folder + '/' + ticker
-    today = enddate = datetime.date.today()
+    today = enddate = datetime.date.today() + datetime.timedelta(days=1)
     startdate = enddate - datetime.timedelta(days=180)
     try:
         fh = finance.fetch_historical_yahoo(ticker, startdate, enddate)
@@ -106,4 +106,4 @@ for ticker in symbol_list:
         state.failed(error)
         
     print state.get()
-    time.sleep(10)
+    time.sleep(5)

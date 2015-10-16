@@ -8,14 +8,16 @@ import matplotlib.ticker as mticker
 import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as font_manager
-from matplotlib.finance import plot_day_summary_oclh
+from matplotlib.finance import plot_day_summary
 import matplotlib.dates as dates
+import json
 
-nslow = 26
-nfast = 12
-nema = 9
+try:
+  settings
+except NameError:
+  settings = json.load(open('settings.json'))
 
-def plot_ticker(ticker, r, rsi, macd, ema):
+def plot_ticker(ticker, r, rsi, cmf, macd, ema):
     prices = r.adj_close
     dx = r.adj_close - r.close
     low = r.low + dx
@@ -30,7 +32,8 @@ def plot_ticker(ticker, r, rsi, macd, ema):
     prices = []
     for row in r:
         adj_ratio = row.adj_close/row.close
-        line = dates.date2num(row.date),row.open*adj_ratio,row.close*adj_ratio,row.low*adj_ratio,row.high*adj_ratio,row.volume
+#        line = dates.date2num(row.date),row.open*adj_ratio,row.close*adj_ratio,row.low*adj_ratio,row.high*adj_ratio,row.volume
+        line = dates.date2num(row.date),row.open*adj_ratio,row.close*adj_ratio,row.high*adj_ratio,row.low*adj_ratio,row.volume
         prices.append(line)
 
     ### plot the figure
@@ -40,10 +43,10 @@ def plot_ticker(ticker, r, rsi, macd, ema):
 
     textsize = 9
     left, width = 0.1, 0.8
-    rect1 = [left, 0.7, width, 0.2]
-    rect2 = [left, 0.3, width, 0.4]
-    rect3 = [left, 0.1, width, 0.2]
-
+    rect1 = [left, 0.8, width, 0.1]
+    rect2 = [left, 0.3, width, 0.5]
+    rect3 = [left, 0.2, width, 0.1]
+    rect4 = [left, 0.1, width, 0.1]
 
     fig = plt.figure(facecolor='white')
     axescolor  = '#f6f6f6'  # the axes background color
@@ -51,11 +54,14 @@ def plot_ticker(ticker, r, rsi, macd, ema):
     ax1 = fig.add_axes(rect1, axisbg=axescolor)  #left, bottom, width, height
     ax2 = fig.add_axes(rect2, axisbg=axescolor, sharex=ax1)
     ax2t = ax2.twinx()
-    ax3  = fig.add_axes(rect3, axisbg=axescolor, sharex=ax1)
-
+    ax3 = fig.add_axes(rect3, axisbg=axescolor, sharex=ax1)
+    ax4 = fig.add_axes(rect4, axisbg=axescolor, sharex=ax1)
+    
     ### plot the relative strength indicator
     fillcolor = 'darkgoldenrod'
 
+    print len(rsi)
+    print len(cmf)
     ax1.plot(r.date, rsi, color=fillcolor)
     ax1.axhline(70, color=fillcolor)
     ax1.axhline(30, color=fillcolor)
@@ -65,11 +71,18 @@ def plot_ticker(ticker, r, rsi, macd, ema):
     ax1.text(0.6, 0.1, '<30 = oversold', transform=ax1.transAxes, fontsize=textsize)
     ax1.set_ylim(0, 100)
     ax1.set_yticks([30,70])
-    ax1.text(0.025, 0.95, 'RSI (14)', va='top', transform=ax1.transAxes, fontsize=textsize)
+    ax1.text(0.025, 0.95, 'RSI (%d)'%settings['rsi']['timeperiod'], va='top', transform=ax1.transAxes, fontsize=textsize)
     ax1.set_title('%s daily'%ticker)
 
+    ### plot the chaikin money flow
+    ax4.plot(r.date, cmf, color=fillcolor)
+    ax4.axhline(0, color=fillcolor)
+    ax4.fill_between(r.date, cmf, 0, where=None, facecolor=fillcolor, edgecolor=fillcolor)
+    ax4.set_yticks([-0.5, 0, 0.5])
+    ax4.text(0.025, 0.95, 'CMF (%d)'%settings['cmf']['timeperiod'], va='top', transform=ax4.transAxes, fontsize=textsize)
+
     ### plot the price and volume data
-    plot_day_summary_oclh(ax2, prices, colorup='#53c156', colordown='#ff1717')
+    plot_day_summary(ax2, prices, colorup='#53c156', colordown='#ff1717')
 
     s = '%s O:%1.2f H:%1.2f L:%1.2f C:%1.2f, V:%1.1fM Chg:%+1.2f' % (
         last.date,
@@ -99,7 +112,7 @@ def plot_ticker(ticker, r, rsi, macd, ema):
     ax3.fill_between(r.date, macd-ema, 0, alpha=0.5, facecolor=fillcolor, edgecolor=fillcolor)
 
 
-    ax3.text(0.025, 0.95, 'MACD (%d, %d, %d)'%(nfast, nslow, nema), va='top', transform=ax3.transAxes, fontsize=textsize)
+    ax3.text(0.025, 0.95, 'MACD (%d, %d, %d)'%(settings['macd']['fastperiod'], settings['macd']['slowperiod'], settings['macd']['signalperiod']), va='top', transform=ax3.transAxes, fontsize=textsize)
 
     #ax3.set_yticks([])
     # turn off upper axis tick labels, rotate the lower ones, etc

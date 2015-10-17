@@ -21,7 +21,7 @@
             "min_cmf": 0.05
         },
         "bullish_crossover": {
-            "max_macd": -0.25,
+            "max_macd": 0.25,
             "window": 3
         }
     },
